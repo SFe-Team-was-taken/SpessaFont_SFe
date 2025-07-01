@@ -146,6 +146,11 @@ declare module "spessasynth_core" {
         | "iver"
         | "ISFT";
 
+    export type SFeInfoType =
+        | "SFty"
+        | "SFvx"
+        | "flag";
+
     export type SampleEncodingFunction = (
         audioData: Float32Array,
         sampleRate: number
@@ -164,6 +169,8 @@ declare module "spessasynth_core" {
         writeDefaultModulators?: boolean;
         writeExtendedLimits?: boolean;
         decompress?: boolean;
+        bankVersion?: string;
+        enable64Bit?: boolean;
     };
 
     export type DLSWriteOptions = {
@@ -173,6 +180,10 @@ declare module "spessasynth_core" {
     export class BasicSoundBank {
         soundFontInfo: Record<
             SoundFontInfoType,
+            string | IndexedByteArray | undefined
+        >;
+        sfeInfo: Record<
+            SFeInfoType,
             string | IndexedByteArray | undefined
         >;
         presets: BasicPreset[];

@@ -42,7 +42,7 @@ export function MenuBar({
     function openFile() {
         const input = document.createElement("input");
         input.type = "file";
-        input.accept = ".sf2,.dls,.sf3,.sfogg";
+        input.accept = ".sf2,.dls,.sf3,.sf4,.sfogg";
         input.click();
         input.onchange = async () => {
             const file: File | undefined = input.files?.[0];
@@ -70,6 +70,13 @@ export function MenuBar({
         setIsLoading(true);
         setTimeout(() => {
             manager.save("sf2", progressFunc).then(() => setIsLoading(false));
+        }, 200);
+    }
+
+    function sfe() {
+        setIsLoading(true);
+        setTimeout(() => {
+            manager.save("sf4", progressFunc).then(() => setIsLoading(false));
         }, 200);
     }
 
@@ -142,6 +149,7 @@ export function MenuBar({
                     text={fLoc + "close"}
                 ></MenuBarItem>
                 <MenuBarItem click={sf2} text={fLoc + "saveSF2"} />
+                <MenuBarItem click={sfe} text={fLoc + "saveSFe"} />
                 <MenuBarItem click={dls} text={fLoc + "saveDLS"} />
                 <MenuBarItem click={sf3} text={fLoc + "saveSF3"} />
                 <MenuBarItem text={"v" + __APP_VERSION__} />

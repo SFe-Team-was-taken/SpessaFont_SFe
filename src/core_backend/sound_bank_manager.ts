@@ -4,6 +4,7 @@ import {
     type ProgressFunction,
     type SoundBankElement,
     type SoundFontInfoType,
+    type SFeInfoType,
     SpessaSynthProcessor,
     type SpessaSynthSequencer
 } from "spessasynth_core";
@@ -35,6 +36,7 @@ export default class SoundBankManager extends BasicSoundBank {
         this.sequencer = sequencer;
         const actualBank = bank ?? loadSoundFont(dummy.slice());
         this.soundFontInfo = actualBank.soundFontInfo;
+        this.sfeInfo = actualBank.sfeInfo;
         if (bank === undefined) {
             this.soundFontInfo["ifil"] = "2.4";
             this.soundFontInfo["INAM"] = "";
@@ -83,6 +85,10 @@ export default class SoundBankManager extends BasicSoundBank {
         return this.soundFontInfo?.[fourCC]?.toString() || "";
     }
 
+    getSFeInfo(fourCC: SFeInfoType) {
+        return this.sfeInfo?.[fourCC]?.toString() || "";
+    }
+
     getTabName(unnamed: string) {
         return `${this.dirty ? "* " : ""}${this.getBankName(unnamed)}`;
     }
@@ -104,7 +110,7 @@ export default class SoundBankManager extends BasicSoundBank {
     }
 
     async save(
-        format: "sf2" | "dls" | "sf3",
+        format: "sf2" | "sf4" | "dls" | "sf3",
         progressFunction: ProgressFunction
     ) {
         let binary: Uint8Array;
@@ -112,7 +118,15 @@ export default class SoundBankManager extends BasicSoundBank {
             default:
             case "sf2":
                 binary = await this.write({
-                    progressFunction
+                    progressFunction,
+                    bankVersion: "soundfont2"
+                });
+                break;
+
+            case "sf4":
+                binary = await this.write({
+                    progressFunction,
+                    bankVersion: "sfe-4.0"
                 });
                 break;
 
