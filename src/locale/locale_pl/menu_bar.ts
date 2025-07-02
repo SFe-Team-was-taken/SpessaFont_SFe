@@ -5,7 +5,7 @@ export const MenuBarLocale = {
         open: "Otwórz",
         close: "Zamknij",
         saveSF2: "Zapisz SF2",
-        saveSFe: "Zapisz SFe",
+        saveSF4: "Zapisz SFe",
         saveDLS: "Eksportuj DLS",
         saveSF3: "Eksportuj SF3"
     },
