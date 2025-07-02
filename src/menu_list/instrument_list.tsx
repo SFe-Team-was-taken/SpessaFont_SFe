@@ -81,6 +81,8 @@ export function InstrumentList({
             setTimeout(() => {
                 instrumentsVirtualizer.scrollToIndex(instruments.indexOf(view));
             }, 100);
+        } else if (selectedInstruments.size > 0) {
+            setSelectedInstruments(new Set<BasicInstrument>());
         }
     }, [
         instruments,
@@ -190,7 +192,7 @@ export function InstrumentList({
                 add={selectedSamples.size > 0}
                 copy={selectedInstruments.size > 0}
                 onCopy={() => {
-                    clipboard.copyInstruments(Array.from(selectedInstruments));
+                    clipboard.copyInstruments(selectedInstruments);
                     setInstruments([...manager.instruments]);
                 }}
                 onPaste={() => {

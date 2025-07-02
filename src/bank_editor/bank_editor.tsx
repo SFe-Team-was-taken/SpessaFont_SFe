@@ -28,7 +28,8 @@ import { SampleEditor } from "../sample_editor/sample_editor.tsx";
 import { DeleteSampleAction } from "../sample_editor/linked_instruments/delete_sample_action.ts";
 import { DeleteInstrumentAction } from "../instrument_editor/linked_presets/delete_instrument_action.ts";
 import { SetSampleTypeAction } from "../sample_editor/set_sample_type_action.ts";
-import { logInfo } from "../utils/core_utils.ts";
+import toast from "react-hot-toast";
+import { useTranslation } from "react-i18next";
 
 export type BankEditorProps = {
     manager: SoundBankManager;
@@ -38,6 +39,7 @@ export type BankEditorProps = {
     ccOptions: JSX.Element;
     shown: boolean;
     ref: BankEditorRef;
+    setEnabledKeys: (k: boolean[]) => unknown;
 };
 
 export type SetViewType = (v: BankEditView) => unknown;
@@ -56,8 +58,10 @@ export function BankEditor({
     destinationOptions,
     ccOptions,
     shown,
-    ref
+    ref,
+    setEnabledKeys
 }: BankEditorProps) {
+    const { t } = useTranslation();
     const [view, setViewLocal] = useState<BankEditView>(manager.currentView);
     const [samples, setSamples] = useState(manager.samples);
     const [instruments, setInstruments] = useState(manager.instruments);
@@ -77,6 +81,21 @@ export function BankEditor({
         setPresets(manager.presets);
         setView(manager.currentView);
     }, [manager, setView]);
+    useEffect(() => {
+        if (
+            !shown ||
+            (!(view instanceof BasicInstrument) &&
+                !(view instanceof BasicPreset))
+        ) {
+            setEnabledKeys(Array(128).fill(true));
+        }
+    }, [setEnabledKeys, shown, view]);
+
+    useEffect(() => {
+        return () => {
+            setEnabledKeys(Array(128).fill(true));
+        };
+    }, [setEnabledKeys]);
 
     useImperativeHandle(ref, () => {
         return {
@@ -125,6 +144,12 @@ export function BankEditor({
                         []
                     );
                 manager.modifyBank([...sampleActions, ...instrumentActions]);
+                toast.success(
+                    t("soundBankLocale.removedElements", {
+                        instruments: instrumentActions.length,
+                        samples: sampleActions.length
+                    })
+                );
             },
 
             // automatically link stereo samples based on the name
@@ -197,12 +222,18 @@ export function BankEditor({
                     }
                 });
                 if (actions.length > 0) {
-                    logInfo(`Modified ${actions.length} samples.`);
+                    toast.success(
+                        t("soundBankLocale.modifiedSamples", {
+                            count: actions.length
+                        })
+                    );
                     manager.modifyBank(actions);
+                } else {
+                    toast(t("soundBankLocale.noSamplesWereChanged"));
                 }
             }
         };
-    }, [manager, samples, setView]);
+    }, [manager, samples, setView, t]);
 
     return (
         <div className={"main_content" + (shown ? "" : " hidden")}>
@@ -222,6 +253,7 @@ export function BankEditor({
             <div className={"main_content_window"}>
                 {view === "info" && (
                     <SoundBankInfo
+                        engine={audioEngine}
                         destinationOptions={destinationOptions}
                         ccOptions={ccOptions}
                         manager={manager}
@@ -236,6 +268,10 @@ export function BankEditor({
                         setView={setView}
                         presets={presets}
                         setPresets={setPresets}
+                        setEnabledKeys={setEnabledKeys}
+                        clipboardManager={clipboardManager}
+                        ccOptions={ccOptions}
+                        destinationOptions={destinationOptions}
                     ></PresetEditor>
                 )}
                 {view instanceof BasicInstrument && (
@@ -246,6 +282,10 @@ export function BankEditor({
                         setView={setView}
                         setInstruments={setInstruments}
                         instruments={instruments}
+                        setEnabledKeys={setEnabledKeys}
+                        clipboardManager={clipboardManager}
+                        ccOptions={ccOptions}
+                        destinationOptions={destinationOptions}
                     ></InstrumentEditor>
                 )}
                 {view instanceof BasicSample && (

@@ -55,6 +55,8 @@ export function SampleList({
                 () => samplesVirtualizer.scrollToIndex(samples.indexOf(view)),
                 100
             );
+        } else if (selectedSamples.size > 0) {
+            setSelectedSamples(new Set<BasicSample>());
         }
     }, [
         samples,
@@ -152,7 +154,7 @@ export function SampleList({
                 open={showSamples}
                 copy={selectedSamples.size > 0}
                 onCopy={() => {
-                    clipboard.copySamples(Array.from(selectedSamples));
+                    clipboard.copySamples(selectedSamples);
                     setSamples([...manager.samples]);
                 }}
                 paste={clipboard.hasSamples()}

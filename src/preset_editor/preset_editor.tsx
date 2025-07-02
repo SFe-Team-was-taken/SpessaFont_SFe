@@ -6,13 +6,15 @@ import {
 import "./preset_editor.css";
 import type { AudioEngine } from "../core_backend/audio_engine.ts";
 import type { SetViewType } from "../bank_editor/bank_editor.tsx";
-import { useEffect, useMemo } from "react";
+import { useEffect } from "react";
 import { cb2db, db2cb } from "../utils/conversion_helpers.ts";
 import { BottomPresetBar } from "./bottom_bar/bottom_bar.tsx";
 import type SoundBankManager from "../core_backend/sound_bank_manager.ts";
 import type { GeneratorRowType } from "../instrument_editor/instrument_editor.tsx";
 import { GeneratorTable } from "../generator_table/generator_table.tsx";
 import { KEYBOARD_TARGET_CHANNEL } from "../keyboard/target_channel.ts";
+import { getZonesClickableKeys } from "../utils/get_instrument_clickable_keys.ts";
+import type { ModulatorListGlobals } from "../modulator_editing/modulator_list/modulator_list.tsx";
 
 const presetRows: GeneratorRowType[] = [
     {
@@ -206,7 +208,11 @@ export function PresetEditor({
     presets,
     setPresets,
     setView,
-    manager
+    manager,
+    setEnabledKeys,
+    destinationOptions,
+    ccOptions,
+    clipboardManager
 }: {
     preset: BasicPreset;
     engine: AudioEngine;
@@ -214,20 +220,15 @@ export function PresetEditor({
     setPresets: (p: BasicPreset[]) => unknown;
     setView: SetViewType;
     manager: SoundBankManager;
-}) {
-    const zones = useMemo(
-        () =>
-            preset.presetZones.toSorted(
-                (z1, z2) => z1.keyRange.min - z2.keyRange.min
-            ),
-        [preset.presetZones]
-    );
-
-    const global = preset.globalZone;
+    setEnabledKeys: (k: boolean[]) => unknown;
+} & ModulatorListGlobals) {
     const update = () => {
+        preset.presetZones = [...preset.presetZones];
         setPresets([...presets]);
         engine.processor.clearCache();
     };
+    const zones = preset.presetZones;
+    const global = preset.globalZone;
 
     useEffect(() => {
         engine.processor.midiAudioChannels[KEYBOARD_TARGET_CHANNEL].setPreset(
@@ -235,6 +236,30 @@ export function PresetEditor({
         );
         engine.processor.clearCache();
     }, [engine.processor, preset]);
+
+    useEffect(() => {
+        const clickableBool = Array(128).fill(false);
+        zones.forEach(
+            ({
+                keyRange: { min, max },
+                instrument: { instrumentZones, globalZone }
+            }) => {
+                if (min === -1) {
+                    min = global.keyRange.min;
+                    max = global.keyRange.max;
+                }
+                const clickableInst = getZonesClickableKeys(
+                    instrumentZones,
+                    globalZone.keyRange
+                );
+                for (let i = Math.max(min, 0); i <= max; i++) {
+                    clickableBool[i] ||= clickableInst[i];
+                }
+            }
+        );
+
+        setEnabledKeys(clickableBool);
+    }, [global.keyRange.max, global.keyRange.min, setEnabledKeys, zones]);
 
     return (
         <div className={"preset_editor"}>
@@ -247,6 +272,9 @@ export function PresetEditor({
                 rows={presetRows}
                 setView={setView}
                 manager={manager}
+                ccOptions={ccOptions}
+                clipboardManager={clipboardManager}
+                destinationOptions={destinationOptions}
             />
             <BottomPresetBar
                 manager={manager}

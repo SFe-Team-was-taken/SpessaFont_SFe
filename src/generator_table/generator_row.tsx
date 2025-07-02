@@ -1,6 +1,7 @@
 import "./cell/generator_cell.css";
 import {
     type BasicGlobalZone,
+    type BasicInstrument,
     BasicInstrumentZone,
     type BasicPresetZone,
     generatorTypes
@@ -11,6 +12,7 @@ import { NumberGeneratorCell } from "./cell/generator_cell.tsx";
 import type SoundBankManager from "../core_backend/sound_bank_manager.ts";
 import { RangeGeneratorCell } from "./cell/range_cell.tsx";
 import type { LinkedZoneMap } from "./generator_table.tsx";
+import { OffsetGeneratorCell } from "./cell/offset_cell.tsx";
 
 export type GeneratorProps = {
     generator: generatorTypes;
@@ -31,6 +33,7 @@ export function NumberGeneratorRow<
     manager,
     global,
     generator,
+    instrument,
     zones,
     linkedZoneMap,
     unit = "",
@@ -44,11 +47,17 @@ export function NumberGeneratorRow<
     highlight?: boolean;
     zones: T[];
     linkedZoneMap: LinkedZoneMap<T>;
+    instrument?: BasicInstrument;
 }) {
     const { t } = useTranslation();
     const isRange =
         generator === generatorTypes.velRange ||
         generator === generatorTypes.keyRange;
+    const isOffset =
+        generator === generatorTypes.startAddrsOffset ||
+        generator === generatorTypes.endAddrOffset ||
+        generator === generatorTypes.startloopAddrsOffset ||
+        generator === generatorTypes.endloopAddrsOffset;
     return (
         <tr className={highlight ? "generator_row_highlight" : ""}>
             <th className={"generator_cell_header"}>
@@ -87,19 +96,55 @@ export function NumberGeneratorRow<
                             <RangeGeneratorCell
                                 colSpan={span}
                                 manager={manager}
-                                linkedZone={linked.zone}
+                                linkedZone={linked.linkedZone}
                                 callback={callback}
                                 generator={generator}
                                 zone={z}
                                 keyRange={z.keyRange}
                                 velRange={z.velRange}
                                 key={i}
+                                instrument={instrument}
                             />
                         );
                     })}
                 </>
             )}
-            {!isRange && (
+            {isOffset && (
+                <>
+                    <OffsetGeneratorCell
+                        manager={manager}
+                        callback={callback}
+                        zone={global}
+                        generatorType={generator}
+                        colSpan={1}
+                    />
+
+                    {zones.map((z, i) => {
+                        const linked = linkedZoneMap[i];
+
+                        let span = 1;
+                        if (linked.index === 2) {
+                            return null;
+                        }
+                        if (linked.index === 1) {
+                            span = 2;
+                        }
+
+                        return (
+                            <OffsetGeneratorCell
+                                colSpan={span}
+                                manager={manager}
+                                linkedZone={linked.linkedZone}
+                                callback={callback}
+                                generatorType={generator}
+                                zone={z}
+                                key={i}
+                            />
+                        );
+                    })}
+                </>
+            )}
+            {!isRange && !isOffset && (
                 <>
                     <NumberGeneratorCell
                         colSpan={1}
@@ -127,7 +172,7 @@ export function NumberGeneratorRow<
                             <NumberGeneratorCell
                                 colSpan={span}
                                 manager={manager}
-                                linkedZone={linked.zone}
+                                linkedZone={linked.linkedZone}
                                 callback={callback}
                                 generator={generator}
                                 zone={z}

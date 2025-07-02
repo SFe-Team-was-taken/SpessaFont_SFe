@@ -1,6 +1,6 @@
 import type { AudioEngine } from "../core_backend/audio_engine.ts";
 import "./keyboard_controller.css";
-import { Keyboard, type KeyboardPressRef } from "./keyboard/keyboard.tsx";
+import { Keyboard, type KeyboardRef } from "./keyboard/keyboard.tsx";
 import * as React from "react";
 import { type JSX, type RefObject, useEffect, useRef, useState } from "react";
 import { midiControllers } from "spessasynth_core";
@@ -30,10 +30,12 @@ const INITIAL_CC_LIST: number[] = [
 
 export function KeyboardController({
     engine,
-    ccOptions
+    ccOptions,
+    enabledKeys
 }: {
     engine: AudioEngine;
     ccOptions: JSX.Element;
+    enabledKeys: boolean[];
 }) {
     const { t } = useTranslation();
     const [controllers, setControllers] = useState(INITIAL_CC_LIST);
@@ -44,9 +46,9 @@ export function KeyboardController({
     });
 
     const pitchRef = useRef<OtherCCRef>(null);
-    const keyboardRef = useRef<KeyboardPressRef>(null);
     const keyDisplayRef = useRef<HTMLSpanElement>(null);
     const velocityDisplayRef = useRef<HTMLSpanElement>(null);
+    const keyboardRef = useRef<KeyboardRef>(null);
 
     useEffect(() => {
         engine.processor.onEventCall = (e, d) => {
@@ -86,7 +88,7 @@ export function KeyboardController({
                 }
             }
         };
-    }, [controllers, engine.processor]);
+    }, [controllers, engine.processor, keyboardRef]);
 
     return (
         <div className={"keyboard_controller"}>
@@ -95,6 +97,7 @@ export function KeyboardController({
                 engine={engine}
                 keyDisplay={keyDisplayRef}
                 velocityDisplay={velocityDisplayRef}
+                enabledKeys={enabledKeys}
             ></Keyboard>
             <div className={"controller_row_scroll"}>
                 <div className={"controller_row controller_row_main"}>
@@ -127,8 +130,7 @@ export function KeyboardController({
                         <div>
                             <span>{t("keyboardLocale.midiKey")}</span>
                             <span
-                                className={"monospaced"}
-                                style={{ marginLeft: "1ch" }}
+                                className={"monospaced number_display"}
                                 ref={keyDisplayRef}
                             >
                                 127
@@ -138,8 +140,7 @@ export function KeyboardController({
                         <div>
                             <span>{t("keyboardLocale.velocity")}</span>
                             <span
-                                className={"monospaced"}
-                                style={{ marginLeft: "1ch" }}
+                                className={"monospaced number_display"}
                                 ref={velocityDisplayRef}
                             >
                                 127

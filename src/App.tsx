@@ -18,7 +18,6 @@ import { AudioEngine } from "./core_backend/audio_engine.ts";
 import { ClipboardManager } from "./core_backend/clipboard_manager.ts";
 import { Settings } from "./settings/settings.tsx";
 import { TabList } from "./tab_list/tab_list.tsx";
-import { loadSoundFont } from "spessasynth_core";
 import { LocaleList } from "./locale/locale_list.ts";
 import { KeyboardController } from "./keyboard/keyboard_controller.tsx";
 import { DestinationsOptions } from "./utils/translated_options/destination_options.tsx";
@@ -27,6 +26,11 @@ import {
     type BankEditorRef,
     MemoizedBankEditor
 } from "./bank_editor/bank_editor.tsx";
+import { ACCEPTED_FORMATS } from "./utils/accepted_formats.ts";
+import { loadSoundBank } from "./core_backend/load_sound_bank.ts";
+import type { BasicSoundBank } from "spessasynth_core";
+import toast, { Toaster } from "react-hot-toast";
+import "./toasts.css";
 
 // apply locale
 const initialSettings = loadSettings();
@@ -60,13 +64,14 @@ const clipboardManager = new ClipboardManager();
 function App() {
     const { t } = useTranslation();
     const [tabs, setTabs] = useState<SoundBankManager[]>([]);
-    const [isLoading, setIsLoading] = useState(false);
-    const [isSaving, setIsSaving] = useState(false);
     const [showKeyboard, setShowKeyboard] = useState(false);
     const [settings, setSettings] = useState(false);
     const [theme, setTheme] = useState(getSetting("theme", initialSettings));
     const [activeTab, setActiveTab] = useState<number>(0); // index in tabs[]
     const bankEditorRef: BankEditorRef = useRef(null);
+    const [enabledKeys, setEnabledKeys] = useState<boolean[]>(
+        Array(128).fill(true)
+    );
 
     const currentManager: SoundBankManager | undefined = useMemo(
         () => tabs[activeTab],
@@ -107,31 +112,53 @@ function App() {
         };
     }, [tabs]);
 
-    const openNewBankTab = useCallback(async (bankFile?: File) => {
-        setIsLoading(true);
+    const openNewBankTab = useCallback(
+        async (bankFile?: File) => {
+            const id = toast.loading(t("loadingAndSaving.loadingFileFromDisk"));
 
-        let bank: SoundBankManager | undefined = undefined;
-        if (bankFile) {
-            const buf = await bankFile.arrayBuffer();
-            bank = loadSoundFont(buf);
-        }
+            let bank: BasicSoundBank | undefined = undefined;
+            if (bankFile) {
+                // @ts-expect-error chrome property
+                if (bankFile.size > 2_147_483_648 && window["chrome"]) {
+                    toast.dismiss(id);
+                    toast.error(t("loadingAndSaving.chromeError"));
+                    return;
+                }
+                try {
+                    const buffer = await bankFile.arrayBuffer();
+                    toast.loading(t("loadingAndSaving.parsingSoundBank"), {
+                        id
+                    });
+                    await new Promise((r) => setTimeout(r, 100));
+                    bank = loadSoundBank(buffer);
+                } catch (e) {
+                    console.error(e);
+                    toast.dismiss(id);
+                    // make so the error appears at the bottom
+                    toast.error(`${e}`);
+                    toast.error(t("loadingAndSaving.errorLoadingSoundBank"));
+                    return;
+                }
+            }
 
-        // will automatically create an empty bank if not provided
-        const newManager = new SoundBankManager(
-            audioEngine.processor,
-            audioEngine.sequencer,
-            bank
-        );
-        setIsLoading(false);
-        newManager.sendBankToSynth();
-        setTabs((prev) => [newManager, ...prev]);
-        setActiveTab(0); // newly added tab
-    }, []);
+            // will automatically create an empty bank if not provided
+            const newManager = new SoundBankManager(
+                audioEngine.processor,
+                audioEngine.sequencer,
+                bank
+            );
+            toast.dismiss(id);
+            newManager.sendBankToSynth();
+            setTabs((prev) => [newManager, ...prev]);
+            setActiveTab(0); // newly added tab
+        },
+        [t]
+    );
 
     const openFile = useCallback(() => {
         const input = document.createElement("input");
         input.type = "file";
-        input.accept = ".sf2,.dls,.sf3,.sfogg";
+        input.accept = ACCEPTED_FORMATS;
         input.click();
         input.onchange = async () => {
             const file: File | undefined = input.files?.[0];
@@ -142,40 +169,76 @@ function App() {
         };
     }, [openNewBankTab]);
 
-    const closeTab = useCallback(
+    const closeTabLocal = useCallback(
         (index: number) => {
             if (!tabs[index]) {
                 return;
             }
             setTabs((prevTabs) => {
                 const tab = prevTabs[index];
-                if (tab.dirty) {
-                    const confirmed = window.confirm(t("unsavedChanges"));
-                    if (!confirmed) {
-                        return prevTabs;
-                    }
-                }
                 tab.close();
                 return prevTabs.filter((_, i) => i !== index);
             });
-            setActiveTab(0);
+            if (activeTab === index) {
+                setActiveTab(0);
+            }
         },
-        [t, tabs]
+        [activeTab, tabs]
+    );
+
+    const closeTab = useCallback(
+        (index: number) => {
+            if (!tabs[index]) {
+                return;
+            }
+            const tab = tabs[index];
+            if (!tab.dirty) {
+                closeTabLocal(index);
+                return;
+            }
+            toast.error(
+                (tost) => (
+                    <div className={"toast_col"}>
+                        <span>{t("unsavedChanges")}</span>
+                        <div className={"toast_row"}>
+                            <span
+                                onClick={() => {
+                                    toast.dismiss(tost.id);
+                                    closeTabLocal(index);
+                                }}
+                                className={"pretty_outline"}
+                            >
+                                {t("discard")}
+                            </span>
+                            <span
+                                onClick={() => toast.dismiss(tost.id)}
+                                className={"pretty_outline"}
+                            >
+                                {t("keep")}
+                            </span>
+                        </div>
+                    </div>
+                ),
+                {
+                    duration: Infinity
+                }
+            );
+        },
+        [closeTabLocal, t, tabs]
     );
 
     const showTabList = !settings;
-    const showWelcome = tabs.length < 1 && !settings && !isSaving && !isLoading;
-    const showSettings = settings && !isLoading && !isSaving;
-    const showEditor = !showWelcome && !showSettings && !isLoading;
-    const savingRef = useRef<HTMLSpanElement>(null);
+    const showWelcome = tabs.length < 1 && !settings;
+    const showSettings = settings;
+    const showEditor = !showWelcome && !showSettings && !!currentManager;
+
     return (
         <div
             className={`spessafont_main ${theme === "light" ? "light_mode" : ""}`}
         >
+            <Toaster toastOptions={{ className: "toasts" }} />
             <MenuBar
                 bankEditorRef={bankEditorRef}
-                setIsLoading={setIsSaving}
-                savingRef={savingRef}
                 showMidiPlayer={tabs.length > 0}
                 toggleSettings={toggleSettings}
                 audioEngine={audioEngine}
@@ -197,22 +260,6 @@ function App() {
                 <Settings setTheme={setTheme} engine={audioEngine} />
             )}
 
-            {isLoading && (
-                <div className="welcome loading">
-                    <h1>{t("synthInit.genericLoading")}</h1>
-                </div>
-            )}
-
-            {isSaving && (
-                <div className={"welcome loading"}>
-                    <h1>{t("soundBankLocale.savingFile")}</h1>
-                    <h2>
-                        <span>{t("soundBankLocale.writingSamples")}</span>
-                        <span ref={savingRef}></span>
-                    </h2>
-                </div>
-            )}
-
             {currentManager && (
                 <MemoizedBankEditor
                     ref={bankEditorRef}
@@ -222,6 +269,7 @@ function App() {
                     manager={currentManager}
                     audioEngine={audioEngine}
                     clipboardManager={clipboardManager}
+                    setEnabledKeys={setEnabledKeys}
                 />
             )}
 
@@ -241,6 +289,7 @@ function App() {
 
             {showKeyboard && (
                 <KeyboardController
+                    enabledKeys={enabledKeys}
                     ccOptions={ccOptions}
                     engine={audioEngine}
                 ></KeyboardController>

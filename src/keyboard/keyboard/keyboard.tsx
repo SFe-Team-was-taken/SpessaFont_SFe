@@ -8,11 +8,11 @@ function isBlackNoteNumber(midiNote: number) {
     return [1, 3, 6, 8, 10].includes(pitchClass);
 }
 
-export type KeyboardPressRef = {
+export type KeyboardRef = {
     clearAll: () => void;
     pressNote: (midiNote: number) => void;
     releaseNote: (midiNote: number) => void;
-};
+} | null;
 
 const pressedKeys: Set<number> = new Set();
 let mouseHeld = false;
@@ -22,12 +22,14 @@ export function Keyboard({
     engine,
     ref,
     keyDisplay,
-    velocityDisplay
+    velocityDisplay,
+    enabledKeys
 }: {
     engine: AudioEngine;
-    ref: RefObject<KeyboardPressRef | null>;
+    ref: RefObject<KeyboardRef | null>;
     keyDisplay: RefObject<HTMLSpanElement | null>;
     velocityDisplay: RefObject<HTMLSpanElement | null>;
+    enabledKeys: boolean[];
 }) {
     const keysRef = useRef<HTMLDivElement[]>([]);
     const keyboardRef = useRef<HTMLDivElement | null>(null);
@@ -173,6 +175,9 @@ export function Keyboard({
         <div className="keyboard" ref={keyboardRef}>
             {keys.map((midiNote) => {
                 let className = "key";
+                if (!enabledKeys[midiNote]) {
+                    className += " disabled";
+                }
                 if (isBlackNoteNumber(midiNote)) {
                     className += " sharp_key";
                 } else {

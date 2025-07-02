@@ -1,4 +1,5 @@
 import {
+    type BasicInstrument,
     BasicSoundBank,
     loadSoundFont,
     type ProgressFunction,
@@ -10,7 +11,10 @@ import {
 } from "spessasynth_core";
 import { type HistoryActionGroup, HistoryManager } from "./history.ts";
 import { encodeVorbis } from "./encode_vorbis.ts";
-import { reorderInstrumentZones } from "../utils/reorder_instrument_zones.ts";
+import {
+    reorderInstrumentZones,
+    ZONE_SORTING_FUNCTION
+} from "../utils/reorder_zones.ts";
 
 export type BankEditView = "info" | SoundBankElement;
 
@@ -34,17 +38,15 @@ export default class SoundBankManager extends BasicSoundBank {
         super();
         this.processor = processor;
         this.sequencer = sequencer;
-        const actualBank = bank ?? loadSoundFont(dummy.slice());
-        this.soundFontInfo = actualBank.soundFontInfo;
-        this.sfeInfo = actualBank.sfeInfo;
+        const actualBank: BasicSoundBank = bank ?? loadSoundFont(dummy.slice());
+        Object.assign(this, actualBank);
         if (bank === undefined) {
             this.soundFontInfo["ifil"] = "2.4";
             this.soundFontInfo["INAM"] = "";
             this.soundFontInfo["ICRD"] = new Date().toISOString().split("T")[0];
         }
-        this.addPresets(...actualBank.presets);
-        this.addInstruments(...actualBank.instruments);
-        this.addSamples(...actualBank.samples);
+        // fix preset references
+        this.presets.forEach((p) => (p.parentSoundBank = this));
         this.sortElements();
         this.sendBankToSynth();
     }
@@ -72,9 +74,14 @@ export default class SoundBankManager extends BasicSoundBank {
         );
 
         // sort stereo zones
-        this.instruments.forEach((i) => {
-            i.instrumentZones = reorderInstrumentZones(i.instrumentZones);
-        });
+        this.instruments.forEach((i) => this.sortInstrumentZones(i));
+
+        // sort preset zones
+        this.presets.forEach((p) => p.presetZones.sort(ZONE_SORTING_FUNCTION));
+    }
+
+    sortInstrumentZones(i: BasicInstrument) {
+        i.instrumentZones = reorderInstrumentZones(i.instrumentZones);
     }
 
     getBankName(unnamed: string) {
@@ -111,7 +118,7 @@ export default class SoundBankManager extends BasicSoundBank {
 
     async save(
         format: "sf2" | "sf4" | "dls" | "sf3",
-        progressFunction: ProgressFunction
+        progressFunction?: ProgressFunction
     ) {
         let binary: Uint8Array;
         switch (format) {
@@ -147,16 +154,26 @@ export default class SoundBankManager extends BasicSoundBank {
             format = "sf3";
         }
         const buffer = binary.buffer;
-        const chunks: ArrayBuffer[] = [];
-        let toWrite = 0;
-        while (toWrite < binary.length) {
-            // 50MB chunks (browsers don't like 4GB array buffers)
-            const size = Math.min(52428800, binary.length - toWrite);
-            chunks.push(buffer.slice(toWrite, toWrite + size) as ArrayBuffer);
-            toWrite += size;
+        if (!(buffer instanceof ArrayBuffer)) {
+            return;
         }
+        let blob: Blob;
+        if (buffer.byteLength > 2147483648) {
+            const chunks: ArrayBuffer[] = [];
+            let toWrite = 0;
+            while (toWrite < binary.length) {
+                // 50MB chunks (browsers don't like 4GB array buffers)
+                const size = Math.min(52428800, binary.length - toWrite);
+                chunks.push(
+                    buffer.slice(toWrite, toWrite + size) as ArrayBuffer
+                );
+                toWrite += size;
+            }
 
-        const blob = new Blob(chunks);
+            blob = new Blob(chunks);
+        } else {
+            blob = new Blob([buffer]);
+        }
         const a = document.createElement("a");
         const url = URL.createObjectURL(blob);
         a.href = url;
@@ -169,11 +186,12 @@ export default class SoundBankManager extends BasicSoundBank {
         setTimeout(() => {
             URL.revokeObjectURL(url);
             console.info("Object URL revoked to free memory");
-        }, 10000);
+        }, 1000);
     }
 
     sendBankToSynth() {
         this.processor.soundfontManager.reloadManager(this);
+        this.processor.clearCache();
         this.sequencer.currentTime -= 0.1;
     }
 

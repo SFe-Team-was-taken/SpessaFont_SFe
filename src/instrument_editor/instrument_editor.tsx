@@ -6,7 +6,7 @@ import {
     generatorTypes
 } from "spessasynth_core";
 import "./instrument_editor.css";
-import { useEffect, useMemo } from "react";
+import { useEffect } from "react";
 import { KEYBOARD_TARGET_CHANNEL } from "../keyboard/target_channel.ts";
 import type SoundBankManager from "../core_backend/sound_bank_manager.ts";
 import type { SetViewType } from "../bank_editor/bank_editor.tsx";
@@ -20,6 +20,8 @@ import {
 } from "../utils/conversion_helpers.ts";
 import { LinkedPresets } from "./linked_presets/linked_presets.tsx";
 import { GeneratorTable } from "../generator_table/generator_table.tsx";
+import { getZonesClickableKeys } from "../utils/get_instrument_clickable_keys.ts";
+import type { ModulatorListGlobals } from "../modulator_editing/modulator_list/modulator_list.tsx";
 
 type InstrumentEditorProps = {
     manager: SoundBankManager;
@@ -28,6 +30,7 @@ type InstrumentEditorProps = {
     setView: SetViewType;
     setInstruments: (s: BasicInstrument[]) => void;
     instruments: BasicInstrument[];
+    setEnabledKeys: (k: boolean[]) => unknown;
 };
 export type GeneratorRowType = {
     generator: generatorTypes;
@@ -280,6 +283,18 @@ const instrumentRows: GeneratorRowType[] = [
     },
     {
         generator: generatorTypes.velocity
+    },
+    {
+        generator: generatorTypes.startAddrsOffset
+    },
+    {
+        generator: generatorTypes.endAddrOffset
+    },
+    {
+        generator: generatorTypes.startloopAddrsOffset
+    },
+    {
+        generator: generatorTypes.endloopAddrsOffset
     }
 ];
 
@@ -289,20 +304,19 @@ export function InstrumentEditor({
     manager,
     setInstruments,
     instruments,
-    setView
-}: InstrumentEditorProps) {
-    const zones = useMemo(
-        () =>
-            instrument.instrumentZones.toSorted(
-                (z1, z2) => z1.keyRange.min - z2.keyRange.min
-            ),
-        [instrument.instrumentZones]
-    );
-
+    setView,
+    setEnabledKeys,
+    clipboardManager,
+    ccOptions,
+    destinationOptions
+}: InstrumentEditorProps & ModulatorListGlobals) {
     const update = () => {
+        instrument.instrumentZones = [...instrument.instrumentZones];
         setInstruments([...instruments]);
         engine.processor.clearCache();
     };
+
+    const zones = instrument.instrumentZones;
 
     const global = instrument.globalZone;
     useEffect(() => {
@@ -324,6 +338,11 @@ export function InstrumentEditor({
             engine.processor.programChange(KEYBOARD_TARGET_CHANNEL, 0);
         };
     }, [engine.processor, instrument, manager]);
+
+    useEffect(() => {
+        setEnabledKeys(getZonesClickableKeys(zones, global.keyRange));
+    }, [zones, setEnabledKeys, global.keyRange]);
+
     return (
         <div className={"instrument_editor"}>
             <GeneratorTable<BasicInstrumentZone, BasicInstrument>
@@ -335,6 +354,9 @@ export function InstrumentEditor({
                 global={global}
                 name={instrument.instrumentName}
                 setView={setView}
+                clipboardManager={clipboardManager}
+                ccOptions={ccOptions}
+                destinationOptions={destinationOptions}
             />
             <LinkedPresets
                 instrument={instrument}

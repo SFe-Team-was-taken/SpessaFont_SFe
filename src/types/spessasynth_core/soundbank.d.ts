@@ -63,7 +63,8 @@ declare module "spessasynth_core" {
         globalZone: BasicGlobalZone;
         linkedPresets: BasicPreset[];
 
-        deleteZone(index: number, force = false): boolean;
+        // force is not optional, so I avoid bugs
+        deleteZone(index: number, force): boolean;
 
         linkTo(p: BasicPreset);
 
@@ -88,10 +89,10 @@ declare module "spessasynth_core" {
 
         setGenerator(type: generatorTypes, value: number);
 
-        getGeneratorValue(
+        getGeneratorValue<T>(
             type: generatorTypes,
-            notFoundValue: number | null
-        ): number | null;
+            notFoundValue: T
+        ): number | T;
     }
 
     export class BasicGlobalZone extends BasicZone {
@@ -225,5 +226,5 @@ declare module "spessasynth_core" {
         removeUnusedElements();
     }
 
-    export const loadSoundFont: (buffer: ArrayBuffer) => SoundBankManager;
+    export const loadSoundFont: (buffer: ArrayBuffer) => BasicSoundBank;
 }

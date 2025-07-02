@@ -3,20 +3,15 @@
 Fully online SoundFont/DLS Editor, written in TypeScript and React.
 No download needed!
 
-## [Link](https://spessasus.github.io/SpessaFont)
+**v1.0.0 is here!**
+
+## [Try it out!](https://spessasus.github.io/SpessaFont)
 
 ## Description
 This is an online SoundFont/DLS editor based on [spessasynth_core](https://github.com/spessasus/spessasynth_core) and [spessasynth_lib](https://github.com/spessasus/spessasynth_lib),
 inspired by
 Davy7125's [polyphone](https://github.com/davy7125/polyphone).
 This is also my first TypeScript and React project. It's a bit messy, but it works! :-P
-
-
-> [!NOTE]
-> This is still in progress!
-> There are still features not yet implemented or tested.
-> Use at your own discretion.
-
 ## Features
 - **Fully online:** *No download needed!*
 - **Multiple tabs:** *Copy between sound banks or edit multiple of them at once!*
@@ -28,7 +23,7 @@ This is also my first TypeScript and React project. It's a bit messy, but it wor
   - Mobile DLS - *Apparently it's different from DLS... So I'm including it as well!*
 - **Built-in MIDI player:** *Test your bank with a MIDI file!*
 - **Real-time synthesizer:** 
-  - *Instant response to parameter changes!*
+  - *Instant response to parameter changes! (to new notes)*
   - *Full modulator support!*
   - *Full generator support!*
   - *GM, GM2, GS, XG support!*
@@ -45,6 +40,7 @@ This is also my first TypeScript and React project. It's a bit messy, but it wor
 - **Built-in MIDI Keyboard:**
   - *Clickable!*
   - *Shows the key number and velocity!*
+  - *Shows keys that don't have a match for a given preset or instrument!*
   - *Controller knobs and pedals are customizable!*
   - *Supports external MIDI devices!*
   - *Looks cool!*

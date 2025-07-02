@@ -1,10 +1,11 @@
 .generator_cell_header {
     cursor: not-allowed;
+    text-align: left;
 }
 
 .generator_cell_header > div {
     text-align: start;
-    padding: 0.2rem;
+    padding: 0.1rem;
     display: flex;
     justify-content: space-between;
     gap: 1ch;
@@ -25,23 +26,27 @@
 
 .generator_cell input, .generator_cell select {
     background: transparent;
-    font-size: 1rem;
+    font-size: var(--generator-table-font-size);
     border: none;
     width: 100%;
     height: 100%;
     text-align: end;
     cursor: cell;
     transition: none;
+    border-radius: 2px;
+}
+
+.generator_cell.modulated input, .generator_cell.modulated select {
+    outline: outset var(--sample-item-color) 0.15rem;
 }
 
 .generator_cell input:focus, .generator_cell select:focus {
     outline: ridge var(--border-color) 0.3rem;
-    border-radius: 2px;
 }
 
 .generator_cell input::placeholder {
     opacity: 0.5;
-    font-size: 0.9rem;
+    font-size: calc(var(--generator-table-font-size) * 0.9);
 }
 
 .generator_cell select {
@@ -56,4 +61,16 @@
 
 .generator_row_highlight .generator_cell {
     background: var(--top-buttons-color-start);
+}
+
+.modulator_cell {
+    cursor: pointer;
+    font-style: italic;
+    opacity: 0.6;
+}
+
+.modulator_cell.modulated {
+    font-weight: bold;
+    opacity: 1;
+    font-style: unset;
 }
