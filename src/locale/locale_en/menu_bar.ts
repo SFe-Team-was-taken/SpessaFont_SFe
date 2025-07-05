@@ -14,7 +14,9 @@ export const MenuBarLocale = {
     edit: {
         edit: "Edit",
         undo: "Undo",
+        nothingToUndo: "Nothing to undo.",
         redo: "Redo",
+        nothingToRedo: "Nothing to redo.",
         removeUnusedElements: "Remove Unused Elements",
         autoLinkSamples: "Auto-Link Stereo Samples"
     },

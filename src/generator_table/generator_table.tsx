@@ -16,6 +16,7 @@ import { useEffect, useMemo, useState } from "react";
 import { GeneratorTableModulatorRow } from "./modulator_row.tsx";
 import { type ModulatorListGlobals } from "../modulator_editing/modulator_list/modulator_list.tsx";
 import { ModulatorEditor } from "./modulator_edit/modulator_edit.tsx";
+import { typedMemo } from "../utils/typed_memo.ts";
 
 /**
  * 0 - no link
@@ -27,7 +28,7 @@ export type LinkedZoneMap<T extends BasicPresetZone | BasicInstrumentZone> = {
     linkedZone: T | undefined;
 }[];
 
-export function GeneratorTable<
+export const GeneratorTable = typedMemo(function <
     ZoneType extends BasicPresetZone | BasicInstrumentZone,
     ElementType extends BasicPreset | BasicInstrument
 >({
@@ -233,4 +234,4 @@ export function GeneratorTable<
             </div>
         </>
     );
-}
+});

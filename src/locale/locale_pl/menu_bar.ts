@@ -7,16 +7,18 @@ export const MenuBarLocale = {
         saveSF2: "Zapisz SF2",
         saveSF4: "Zapisz SFe",
         saveDLS: "Eksportuj DLS",
-        saveSF3: "Eksportuj SF3"
+        saveSF3: "Eksportuj SF3",
+        fullscreen: "Pełny ekran",
+        about: "O programie"
     },
     edit: {
         edit: "Edytuj",
         undo: "Cofnij",
+        nothingToUndo: "Nie ma czego cofnąć.",
         redo: "Ponów",
-        copy: "Kopiuj",
-        paste: "Wklej",
-        cut: "Wytnij",
-        delete: "Usuń"
+        nothingToRedo: "Nie ma czego ponowić.",
+        removeUnusedElements: "Usuń nieużywane elementy",
+        autoLinkSamples: "Automatycznie połącz próbki stereo"
     },
     midi: {
         player: "Odtwarzacz MIDI",
@@ -27,4 +29,4 @@ export const MenuBarLocale = {
 
     voices: "Głosy:",
     settings: "Ustawienia"
-}; 
+};
