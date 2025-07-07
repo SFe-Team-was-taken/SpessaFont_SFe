@@ -132,14 +132,16 @@ export function PresetList({
         let found = !!presets.find(
             (p) =>
                 p.preset.program === preset.program &&
-                p.preset.bank === preset.bank
+                p.preset.bank === preset.bank &&
+                p.preset.bankLSB === preset.bankLSB
         );
         while (found) {
             preset.bank++;
             found = !!presets.find(
                 (p) =>
                     p.preset.program === preset.program &&
-                    p.preset.bank === preset.bank
+                    p.preset.bank === preset.bank &&
+                    p.preset.bankLSB === preset.bankLSB
             );
         }
         const action = new CreatePresetAction(preset, setPresets, setView);

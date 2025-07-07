@@ -203,13 +203,18 @@ export const MenuList = React.memo(function ({
     const presetNameMap: MappedPresetType[] = useMemo(() => {
         return presets.map((p) => {
             return {
-                searchString: `${p.bank.toString().padStart(3, "0")}:${p.program
+                searchString: `${p.bank.toString().padStart(3, "0")}:${p.bankLSB
+                    .toString()
+                    .padStart(3, "0")}:${p.program
                     .toString()
                     .padStart(3, "0")} ${p.presetName}`.toLowerCase(),
                 preset: p
             };
         });
     }, [presets]);
+
+    console.log(presetNameMap);
+
     const searchQueryLower = useMemo(
         () => searchQuery.toLowerCase(),
         [searchQuery]
@@ -260,7 +265,7 @@ export const MenuList = React.memo(function ({
             // backfill the instruments' samples
             matchedInstrumentSet.forEach((i) =>
                 i.instrumentZones.forEach((z) => matchedSampleSet.add(z.sample))
-            );
+            );            
 
             return {
                 filteredSamples: samples.filter((s) => matchedSampleSet.has(s)),
@@ -272,6 +277,9 @@ export const MenuList = React.memo(function ({
                 )
             };
         }, [searchQueryLower, samples, instruments, presetNameMap]);
+
+
+
 
     if (!open) {
         return (
