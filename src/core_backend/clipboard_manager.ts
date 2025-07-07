@@ -268,7 +268,8 @@ export class ClipboardManager {
                 alreadyCloned,
                 actions,
                 setSamples,
-                setView
+                setView,
+                false
             );
             // relink cloned samples
             newLinked.unlinkSample();
