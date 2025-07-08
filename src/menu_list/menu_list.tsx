@@ -202,18 +202,30 @@ export const MenuList = React.memo(function ({
 
     const presetNameMap: MappedPresetType[] = useMemo(() => {
         return presets.map((p) => {
-            return {
-                searchString: `${p.bank.toString().padStart(3, "0")}:${p.bankLSB
-                    .toString()
-                    .padStart(3, "0")}:${p.program
-                    .toString()
-                    .padStart(3, "0")} ${p.presetName}`.toLowerCase(),
-                preset: p
-            };
+            if (p.bank >= 128)
+            {
+                return {
+                    searchString: `${(p.bank).toString().padStart(3, "0")}:${p.bankLSB
+                        .toString()
+                        .padStart(3, "0")}:${p.program
+                        .toString()
+                        .padStart(3, "0")} (perc) ${p.presetName}`.toLowerCase(),
+                    preset: p
+                };
+            } else {
+                return {
+                    searchString: `${p.bank.toString().padStart(3, "0")}:${p.bankLSB
+                        .toString()
+                        .padStart(3, "0")}:${p.program
+                        .toString()
+                        .padStart(3, "0")}        ${p.presetName}`.toLowerCase(),
+                    preset: p
+                };
+            }
+
         });
     }, [presets]);
 
-    console.log(presetNameMap);
 
     const searchQueryLower = useMemo(
         () => searchQuery.toLowerCase(),

@@ -65,7 +65,7 @@ export function PresetDisplay({
                             })
                         }
                     >
-                        {p.searchString.substring(0, 11)}
+                        {p.searchString.substring(0, 18)}
                     </span>
                     {link && (
                         <span title={t("presetLocale.linkSelectedInstruments")}>

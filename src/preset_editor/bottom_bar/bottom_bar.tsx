@@ -111,7 +111,7 @@ export function BottomPresetBar({
                 <WaitingInput
                     type={"number"}
                     min={0}
-                    max={255}
+                    max={127}
                     value={preset.bankLSB}
                     setValue={(v) => {
                         // no duplicates
