@@ -155,6 +155,8 @@ declare module "spessasynth_core" {
     export type SFeInfoType =
         | "SFty"
         | "SFvx"
+        | "SFvx.wSFeSpecMajorVersion"
+        | "SFvx.wSFeSpecMinorVersion"
         | "flag";
 
     export type SampleEncodingFunction = (

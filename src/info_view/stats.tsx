@@ -30,6 +30,19 @@ export function BankInfoStats({
         });
     }
 
+    const ifilData = manager.getInfo("ifil");
+    let sfVersionData;
+    if (ifilData == "2.1024" || ifilData == "3.1024" || ifilData == "4.0") // Todo: Find a way to convert string to number in TS
+    {
+        const sfvxDataMaj = manager.getSFeInfo("SFvx.wSFeSpecMajorVersion");
+        const sfvxDataMin = manager.getSFeInfo("SFvx.wSFeSpecMinorVersion");
+        sfVersionData = `SFe ${sfvxDataMaj}.${sfvxDataMin} (${ifilData})`
+    }
+    else
+    {
+        sfVersionData = `SF2 ${ifilData}`;
+    }
+
     // count compressed samples
     const compressed = bank.samples.filter((s) => s.isCompressed).length;
     return (
@@ -37,7 +50,7 @@ export function BankInfoStats({
             <h1>{t("bankInfo.stats")}</h1>
             <span>
                 <label>{t("bankInfo.version")}</label>
-                <pre className={"monospaced"}>{manager.getInfo("ifil")}</pre>
+                <pre className={"monospaced"}>{sfVersionData}</pre>
             </span>
             <span>
                 <label>{t("bankInfo.engine")}</label>
