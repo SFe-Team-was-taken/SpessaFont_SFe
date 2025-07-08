@@ -134,17 +134,6 @@ export const MenuList = React.memo(function ({
 
                 case "v": {
                     if (e.ctrlKey) {
-                        clipboard.pasteSamples(manager, setSamples, setView);
-                        setSamples([
-                            ...manager.samples.toSorted((a, b) =>
-                                a.sampleName > b.sampleName
-                                    ? 1
-                                    : b.sampleName > a.sampleName
-                                      ? -1
-                                      : 0
-                            )
-                        ]);
-
                         clipboard.pastePresets(
                             manager,
                             setPresets,
@@ -177,6 +166,17 @@ export const MenuList = React.memo(function ({
                                       : 0
                             )
                         ]);
+
+                        clipboard.pasteSamples(manager, setSamples, setView);
+                        setSamples([
+                            ...manager.samples.toSorted((a, b) =>
+                                a.sampleName > b.sampleName
+                                    ? 1
+                                    : b.sampleName > a.sampleName
+                                      ? -1
+                                      : 0
+                            )
+                        ]);
                     }
                 }
             }
@@ -202,14 +202,31 @@ export const MenuList = React.memo(function ({
 
     const presetNameMap: MappedPresetType[] = useMemo(() => {
         return presets.map((p) => {
-            return {
-                searchString: `${p.bank.toString().padStart(3, "0")}:${p.program
-                    .toString()
-                    .padStart(3, "0")} ${p.presetName}`.toLowerCase(),
-                preset: p
-            };
+            if (p.bank >= 128)
+            {
+                return {
+                    searchString: `${(p.bank).toString().padStart(3, "0")}:${p.bankLSB
+                        .toString()
+                        .padStart(3, "0")}:${p.program
+                        .toString()
+                        .padStart(3, "0")} (perc) ${p.presetName}`.toLowerCase(),
+                    preset: p
+                };
+            } else {
+                return {
+                    searchString: `${p.bank.toString().padStart(3, "0")}:${p.bankLSB
+                        .toString()
+                        .padStart(3, "0")}:${p.program
+                        .toString()
+                        .padStart(3, "0")}        ${p.presetName}`.toLowerCase(),
+                    preset: p
+                };
+            }
+
         });
     }, [presets]);
+
+
     const searchQueryLower = useMemo(
         () => searchQuery.toLowerCase(),
         [searchQuery]
@@ -260,7 +277,7 @@ export const MenuList = React.memo(function ({
             // backfill the instruments' samples
             matchedInstrumentSet.forEach((i) =>
                 i.instrumentZones.forEach((z) => matchedSampleSet.add(z.sample))
-            );
+            );            
 
             return {
                 filteredSamples: samples.filter((s) => matchedSampleSet.has(s)),
@@ -272,6 +289,9 @@ export const MenuList = React.memo(function ({
                 )
             };
         }, [searchQueryLower, samples, instruments, presetNameMap]);
+
+
+
 
     if (!open) {
         return (

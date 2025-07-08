@@ -59,7 +59,7 @@ export function BottomPresetBar({
                         // no duplicates
                         if (
                             presets.find(
-                                (p) => p.program === v && p.bank === preset.bank
+                                (p) => p.program === v && p.bank === preset.bank && p.bankLSB === preset.bankLSB
                             )
                         ) {
                             return preset.program;
@@ -81,14 +81,14 @@ export function BottomPresetBar({
                 <WaitingInput
                     type={"number"}
                     min={0}
-                    max={128}
+                    max={255}
                     value={preset.bank}
                     setValue={(v) => {
                         // no duplicates
                         if (
                             presets.find(
                                 (p) =>
-                                    p.program === preset.program && p.bank === v
+                                    p.program === preset.program && p.bank === v && p.bankLSB === preset.bankLSB
                             )
                         ) {
                             return preset.bank;
@@ -105,6 +105,37 @@ export function BottomPresetBar({
                     }}
                 />
             </div>
+
+            <div>
+                <span>{t("presetLocale.bankNumberLSB")}</span>
+                <WaitingInput
+                    type={"number"}
+                    min={0}
+                    max={127}
+                    value={preset.bankLSB}
+                    setValue={(v) => {
+                        // no duplicates
+                        if (
+                            presets.find(
+                                (p) =>
+                                    p.program === preset.program && p.bank === preset.bank && p.bankLSB === v
+                            )
+                        ) {
+                            return preset.bank;
+                        }
+                        const action = new EditPresetAction(
+                            presets.indexOf(preset),
+                            "bankLSB",
+                            preset.bankLSB,
+                            v,
+                            () => setPresets([...presets])
+                        );
+                        manager.modifyBank([action]);
+                        return v;
+                    }}
+                />
+            </div>
+
             <div onClick={deletePreset}>
                 <strong className={"warning"}>
                     {t("presetLocale.deletePreset")}

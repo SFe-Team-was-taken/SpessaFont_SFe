@@ -120,6 +120,7 @@ declare module "spessasynth_core" {
         presetName: string;
         program: number;
         bank: number;
+        bankLSB: number;
         library: number;
         genre: number;
         morphology: number;

@@ -73,23 +73,45 @@ export class ClipboardManager {
         const actions: HistoryAction[] = [];
         const presetNumbers = new Set<string>();
         m.presets.forEach((p) => {
-            presetNumbers.add(`${p.bank}-${p.program}`);
+            presetNumbers.add(`${p.bank}-${p.bankLSB}-${p.program}`);
         });
         this.presetClipboard.forEach((oldPreset) => {
             let bank = oldPreset.bank;
+            let bankLSB = oldPreset.bankLSB;
             let program = oldPreset.program;
-            while (presetNumbers.has(`${bank}-${program}`)) {
-                if (bank === 128) {
+            while (presetNumbers.has(`${bank}-${bankLSB}-${program}`)) {
+                if (bank >= 128)
+                {
                     program++;
+                    if (program >= 127)
+                    {
+                        program = 0;
+                        bank++;
+                        if (bank > 255)
+                        {
+                            bank = 128;
+                            bankLSB++;
+                            if (bankLSB > 127)
+                            {
+                                throw new Error(
+                                    `No free space to paste ${oldPreset.program}`
+                                );
+                            }
+                        }
+                    }
                 } else {
                     bank++;
                     if (bank >= 127) {
                         bank = 0;
-                        program++;
-                        if (program > 127) {
-                            throw new Error(
-                                `No free space to paste ${oldPreset.program}`
-                            );
+                        bankLSB++;
+                        if (bankLSB > 127) {
+                            bankLSB = 0;
+                            program++;
+                            if (program > 127) {
+                                throw new Error(
+                                    `No free space to paste ${oldPreset.program}`
+                                );
+                            }
                         }
                     }
                 }
@@ -246,7 +268,8 @@ export class ClipboardManager {
                 alreadyCloned,
                 actions,
                 setSamples,
-                setView
+                setView,
+                false
             );
             // relink cloned samples
             newLinked.unlinkSample();

@@ -56,6 +56,9 @@ export default class SoundBankManager extends BasicSoundBank {
             if (a.bank !== b.bank) {
                 return a.bank - b.bank;
             }
+            if (a.bankLSB !== b.bankLSB) {
+                return a.bankLSB - b.bankLSB;
+            }
             return a.program - b.program;
         });
         this.samples.sort((a, b) =>
