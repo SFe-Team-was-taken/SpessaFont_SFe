@@ -41,7 +41,7 @@ export class AudioEngine {
         });
         dummy.then((d) =>
             this.processor.soundfontManager.reloadManager(
-                loadSoundFont(d.slice())
+                loadSoundFont(d.slice(), false)
             )
         );
 

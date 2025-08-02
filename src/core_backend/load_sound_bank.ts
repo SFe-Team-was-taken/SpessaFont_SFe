@@ -18,7 +18,7 @@ export function loadSoundBank(buf: ArrayBuffer): BasicSoundBank {
         if (!mid.embeddedSoundFont) {
             throw new Error("No embedded sound bank.");
         }
-        return loadSoundFont(mid.embeddedSoundFont);
+        return loadSoundFont(mid.embeddedSoundFont, false);
     }
-    return loadSoundFont(buf);
+    return loadSoundFont(buf, false);
 }

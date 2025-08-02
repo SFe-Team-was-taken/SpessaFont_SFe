@@ -38,7 +38,7 @@ export default class SoundBankManager extends BasicSoundBank {
         super();
         this.processor = processor;
         this.sequencer = sequencer;
-        const actualBank: BasicSoundBank = bank ?? loadSoundFont(dummy.slice());
+        const actualBank: BasicSoundBank = bank ?? loadSoundFont(dummy.slice(), false);
         Object.assign(this, actualBank);
         if (bank === undefined) {
             this.soundFontInfo["ifil"] = "2.4";
@@ -112,7 +112,7 @@ export default class SoundBankManager extends BasicSoundBank {
             this.processor.soundfontManager.soundfontList[0].soundfont === this
         ) {
             this.processor.soundfontManager.reloadManager(
-                loadSoundFont(dummy.slice())
+                loadSoundFont(dummy.slice(), false)
             );
         }
         this.clearCache();

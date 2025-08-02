@@ -26,6 +26,7 @@ declare module "spessasynth_core" {
         readonly compressedData: Uint8Array | null;
         readonly sampleData: Float32Array | null;
         readonly useCount: number;
+        // sampleNameUtf8Data: IndexedByteArray;
 
         readonly linkedInstruments: BasicInstrument[];
 
@@ -231,5 +232,5 @@ declare module "spessasynth_core" {
         removeUnusedElements();
     }
 
-    export const loadSoundFont: (buffer: ArrayBuffer) => BasicSoundBank;
+    export const loadSoundFont: (buffer: ArrayBuffer, presetShadowing: boolean) => BasicSoundBank;
 }
