@@ -88,4 +88,3 @@ $RECYCLE.BIN/
 # Windows shortcuts
 *.lnk!/src/externals/sl-web-ogg/dist/
 !/externals/sl-web-ogg/dist/
-CoreRebuild.sh
