@@ -15,7 +15,6 @@
 }
 
 .spessafont_main *, .spessafont_main {
-    scrollbar-gutter: stable;
     /*global variables*/
     --lighter-color-start: oklch(16% 0 0);
     --lighter-color-end: oklch(20.5% 0 0);
@@ -171,17 +170,18 @@ input:focus, select:focus {
 }
 
 
-::-webkit-scrollbar {
-    width: 0.3rem;
-    height: 0.5rem;
-    background: transparent;
-}
+/* Commented for now because native scrollbars seem nice */
+/*::-webkit-scrollbar {*/
+/*    width: 0.3rem;*/
+/*    height: 0.5rem;*/
+/*    background: transparent;*/
+/*}*/
 
-::-webkit-scrollbar-track {
-    background: transparent;
-}
+/*::-webkit-scrollbar-track {*/
+/*    background: transparent;*/
+/*}*/
 
-::-webkit-scrollbar-thumb {
-    background-color: var(--font-color);
-    border-radius: 4px;
-}
+/*::-webkit-scrollbar-thumb {*/
+/*    background-color: var(--font-color);*/
+/*    border-radius: 4px;*/
+/*}*/
